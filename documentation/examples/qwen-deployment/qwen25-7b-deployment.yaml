@@ -14,11 +14,16 @@
 #   - Latest upstream vLLM DOES support Qwen3.5 (see docs.vllm.ai)
 #   - When Red Hat updates vLLM image, Qwen3.5 will work
 #
+# Key Labels:
+#   - opendatahub.io/genai-asset: "true"  -> Shows in Gen AI Studio > AI Asset Endpoints
+#   - networking.kserve.io/visibility: exposed -> Creates external Route automatically
+#
 # References:
 #   - KServe HF Storage: https://kserve.github.io/website/docs/model-serving/storage/providers/hf
 #   - OpenShift AI Model Serving: https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2-latest/html/serving_models
 #   - vLLM on RHOAI: https://ai-on-openshift.io/odh-rhoai/vllm-on-rhoai/
 #   - Qwen2.5 Model: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct
+#   - Gen AI Playground: https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.3/html/experimenting_with_models_in_the_gen_ai_playground
 #
 # Tested on: RHOAI 3.3.1, vLLM 0.13.0+rhai11, NVIDIA GPU (g5.2xlarge)
 # =============================================================================
@@ -87,9 +92,7 @@ metadata:
     opendatahub.io/model-type: generative
   labels:
     opendatahub.io/dashboard: "true"
-    # IMPORTANT: This label makes the model visible in Gen AI Studio > AI Asset Endpoints
     opendatahub.io/genai-asset: "true"
-    # Expose the model externally via Route
     networking.kserve.io/visibility: exposed
 spec:
   predictor:

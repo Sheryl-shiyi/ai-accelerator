@@ -30,6 +30,17 @@ oc get pods -n qwen-demo -w
 oc get inferenceservice -n qwen-demo
 ```
 
+### Expected Timeline
+
+| Phase | Duration | Description |
+|-------|----------|-------------|
+| GPU Node Provisioning | 3-5 min | If no GPU nodes available, autoscaler creates new ones |
+| GPU Driver Install | 5-10 min | NVIDIA GPU Operator installs drivers on new nodes |
+| Model Download | 3-5 min | Downloads ~15GB model from HuggingFace |
+| Model Loading | 1-2 min | vLLM loads model into GPU memory |
+| **Total (cold start)** | **12-22 min** | First deployment with no GPU nodes |
+| **Total (warm start)** | **5-8 min** | GPU nodes already available |
+
 ## Testing the Model
 
 Once deployed (READY=True), test with:
@@ -59,6 +70,18 @@ curl -X POST "https://${ENDPOINT}/v1/chat/completions" \
     "max_tokens": 100
   }'
 ```
+
+## Using Gen AI Studio Playground
+
+This deployment includes the `opendatahub.io/genai-asset: "true"` label, which makes the model available in the Gen AI Studio.
+
+1. Go to **OpenShift AI Dashboard**
+2. Navigate to **Gen AI Studio → AI Asset Endpoints**
+3. Find `Qwen2.5-7B-Instruct` in the list
+4. Click **"Add to playground"**
+5. Start chatting with your model!
+
+> **Note**: Requires `genAiStudio: true` in OdhDashboardConfig and `llamastackoperator.managementState: Managed` in DataScienceCluster.
 
 ## Model Specifications
 
@@ -126,8 +149,25 @@ oc get events -n qwen-demo --sort-by='.lastTimestamp'
 oc describe inferenceservice qwen25-7b -n qwen-demo
 ```
 
+### Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `model type 'qwen3_5' not recognized` | Qwen3.5 uses new architecture not supported by Red Hat vLLM | Use Qwen2.5 instead, or wait for RHOAI update |
+| `Insufficient nvidia.com/gpu` | No GPU resources available | Wait for GPU node autoscaling, or check MachineAutoscaler |
+| `untolerated taint nvidia.com/gpu` | Pod missing GPU toleration | Ensure `tolerations` section is included |
+| `OOMKilled` | Model too large for GPU memory | Use smaller model or increase `--max-model-len` |
+| `Init:0/1` stuck | Model download in progress | Check storage-initializer logs, wait for download |
+
 ## Cleanup
 
 ```bash
+# Delete the deployment
 oc delete -f qwen25-7b-deployment.yaml
+
+# (Optional) Immediately release GPU nodes to save costs
+# Otherwise, MachineAutoscaler will scale down after ~10-15 min idle
+oc scale machineset -n openshift-machine-api \
+  $(oc get machineset -n openshift-machine-api -o name | grep g5) \
+  --replicas=0
 ```
