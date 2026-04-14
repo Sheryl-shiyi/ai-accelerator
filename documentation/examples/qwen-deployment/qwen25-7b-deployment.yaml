@@ -1,0 +1,117 @@
+# =============================================================================
+# Qwen2.5-7B-Instruct Deployment for OpenShift AI (RHOAI)
+# =============================================================================
+#
+# Model: Qwen/Qwen2.5-7B-Instruct
+#   - License: Apache-2.0 (NO HF_TOKEN required)
+#   - Architecture: Qwen2ForCausalLM (supported by vLLM 0.13.0+)
+#   - Parameters: 7B
+#   - Context Length: 32K (limited to 8K in this config for memory)
+#
+# Why Qwen2.5 instead of Qwen3.5?
+#   - Qwen3.5 uses the new "qwen3_5" architecture
+#   - Red Hat vLLM image (0.13.0+rhai11) does not yet support qwen3_5
+#   - Latest upstream vLLM DOES support Qwen3.5 (see docs.vllm.ai)
+#   - When Red Hat updates vLLM image, Qwen3.5 will work
+#
+# References:
+#   - KServe HF Storage: https://kserve.github.io/website/docs/model-serving/storage/providers/hf
+#   - OpenShift AI Model Serving: https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2-latest/html/serving_models
+#   - vLLM on RHOAI: https://ai-on-openshift.io/odh-rhoai/vllm-on-rhoai/
+#   - Qwen2.5 Model: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct
+#
+# Tested on: RHOAI 3.3.1, vLLM 0.13.0+rhai11, NVIDIA GPU (g5.2xlarge)
+# =============================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qwen-demo
+  labels:
+    opendatahub.io/dashboard: "true"
+    modelmesh-enabled: "false"
+---
+# ServingRuntime: vLLM configuration for Qwen2.5
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: vllm-qwen25
+  namespace: qwen-demo
+  annotations:
+    opendatahub.io/apiProtocol: REST
+    opendatahub.io/template-display-name: vLLM ServingRuntime for Qwen2.5
+    opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
+  labels:
+    opendatahub.io/dashboard: "true"
+spec:
+  annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8080"
+  containers:
+  - name: kserve-container
+    image: registry.redhat.io/rhaiis/vllm-cuda-rhel9@sha256:ec799bb5eeb7e25b4b25a8917ab5161da6b6f1ab830cbba61bba371cffb0c34d
+    command:
+    - python
+    - -m
+    - vllm.entrypoints.openai.api_server
+    args:
+    - --port=8080
+    - --model=/mnt/models
+    - --served-model-name={{.Name}}
+    - --max-model-len=8192
+    - --tensor-parallel-size=1
+    - --gpu-memory-utilization=0.9
+    env:
+    - name: HF_HOME
+      value: /tmp/hf_home
+    - name: TRANSFORMERS_CACHE
+      value: /tmp/transformers_cache
+    ports:
+    - containerPort: 8080
+      protocol: TCP
+  multiModel: false
+  supportedModelFormats:
+  - autoSelect: true
+    name: vLLM
+---
+# InferenceService: Deploys Qwen2.5-7B-Instruct using hf:// protocol
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: qwen25-7b
+  namespace: qwen-demo
+  annotations:
+    serving.kserve.io/deploymentMode: RawDeployment
+    security.opendatahub.io/enable-auth: "false"
+    openshift.io/display-name: Qwen2.5-7B-Instruct
+    opendatahub.io/model-type: generative
+  labels:
+    opendatahub.io/dashboard: "true"
+    # IMPORTANT: This label makes the model visible in Gen AI Studio > AI Asset Endpoints
+    opendatahub.io/genai-asset: "true"
+    # Expose the model externally via Route
+    networking.kserve.io/visibility: exposed
+spec:
+  predictor:
+    minReplicas: 1
+    maxReplicas: 1
+    model:
+      modelFormat:
+        name: vLLM
+      runtime: vllm-qwen25
+      # hf:// protocol - KServe downloads directly from HuggingFace Hub
+      # Format: hf://<org>/<model>:<revision>(optional)
+      storageUri: hf://Qwen/Qwen2.5-7B-Instruct
+      resources:
+        limits:
+          cpu: "4"
+          memory: 24Gi
+          nvidia.com/gpu: "1"
+        requests:
+          cpu: "2"
+          memory: 16Gi
+          nvidia.com/gpu: "1"
+    tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
