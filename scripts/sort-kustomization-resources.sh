@@ -22,7 +22,7 @@ add_section_spacing() {
     /^kind:/ { seen_kind = 1; print; next }
 
     # Major section keywords - add blank line before them if not already present
-    /^(resources|components|bases|patches|replacements|configMapGenerator|secretGenerator|commonAnnotations|commonLabels|namespace|images|replicas|namePrefix|nameSuffix|vars|patchesStrategicMerge|patchesJson6902):/ {
+    /^(resources|components|bases|patches|replacements|configMapGenerator|generatorOptions|secretGenerator|commonAnnotations|commonLabels|namespace|helmCharts|images|replicas|namePrefix|nameSuffix|vars|patchesStrategicMerge|patchesJson6902):/ {
       # Add blank line before section if previous line was not blank
       if (!prev_blank) {
         print ""
