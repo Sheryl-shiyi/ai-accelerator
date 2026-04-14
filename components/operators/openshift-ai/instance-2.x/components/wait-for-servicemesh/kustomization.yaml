@@ -3,6 +3,7 @@ kind: Component
 
 resources:
   - wait-for-servicemesh-job.yaml
+
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

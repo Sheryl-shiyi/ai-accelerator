@@ -4,6 +4,7 @@ kind: Component
 resources:
   - namespace-presync.yaml
   - wait-for-prereqs-job.yaml
+
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
