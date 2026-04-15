@@ -171,12 +171,105 @@ verify_repo() {
   fi
 }
 
+verify_configmap_repo() {
+  if [ -z "$1" ]; then
+    echo "No kustomization file supplied."
+    exit 1
+  else
+    KUST_FILE=$1
+  fi
+
+  if [ -z "$2" ]; then
+    echo "No expected repo supplied."
+    exit 1
+  else
+    EXPECTED_REPO=$2
+  fi
+
+  if ${DEBUG}; then
+    echo "Verifying if ${KUST_FILE} configMapGenerator is set to ${EXPECTED_REPO}"
+  fi
+
+  # Extract repoURL from configMapGenerator
+  CONFIGMAP_REPO=$(yq -r '.configMapGenerator[] | select(.name == "gitops-repo-config") | .literals[]' ${KUST_FILE} | grep "^repoURL=" | cut -d= -f2)
+
+  if [[ -z "${CONFIGMAP_REPO}" ]]; then
+    if ${DEBUG}; then
+      echo "Skipping ${KUST_FILE} - no configMapGenerator found"
+    fi
+    return 0
+  fi
+
+  if [[ "${CONFIGMAP_REPO}" != "${EXPECTED_REPO}" ]]; then
+    if ${GITHUB}; then
+      line_number=$(yq '.configMapGenerator[] | select(.name == "gitops-repo-config") | .literals[] | select(. | contains("repoURL")) | line' ${KUST_FILE})
+      message="Expected \`${EXPECTED_REPO}\` but got \`${CONFIGMAP_REPO}\`"
+      echo "::error file=${KUST_FILE},line=${line_number},col=10,title=Incorrect Repo URL in ConfigMap::${message}"
+    else
+      echo "Expected ${KUST_FILE} configMapGenerator to be set to \`${EXPECTED_REPO}\` but got \`${CONFIGMAP_REPO}\`"
+    fi
+
+    ERROR_DETECTED=true
+  fi
+}
+
+verify_configmap_branch() {
+  if [ -z "$1" ]; then
+    echo "No kustomization file supplied."
+    exit 1
+  else
+    KUST_FILE=$1
+  fi
+
+  if [ -z "$2" ]; then
+    echo "No expected branch supplied."
+    exit 1
+  else
+    EXPECTED_BRANCH=$2
+  fi
+
+  if ${DEBUG}; then
+    echo "Verifying if ${KUST_FILE} configMapGenerator is set to ${EXPECTED_BRANCH}"
+  fi
+
+  # Extract targetRevision from configMapGenerator
+  CONFIGMAP_BRANCH=$(yq -r '.configMapGenerator[] | select(.name == "gitops-repo-config") | .literals[]' ${KUST_FILE} | grep "^targetRevision=" | cut -d= -f2)
+
+  if [[ -z "${CONFIGMAP_BRANCH}" ]]; then
+    if ${DEBUG}; then
+      echo "Skipping ${KUST_FILE} - no configMapGenerator found"
+    fi
+    return 0
+  fi
+
+  if [[ "${CONFIGMAP_BRANCH}" != "${EXPECTED_BRANCH}" ]]; then
+    if ${GITHUB}; then
+      line_number=$(yq '.configMapGenerator[] | select(.name == "gitops-repo-config") | .literals[] | select(. | contains("targetRevision")) | line' ${KUST_FILE})
+      message="Expected \`${EXPECTED_BRANCH}\` but got \`${CONFIGMAP_BRANCH}\`"
+      echo "::error file=${KUST_FILE},line=${line_number},col=10,title=Incorrect Branch in ConfigMap::${message}"
+    else
+      echo "Expected ${KUST_FILE} configMapGenerator to be set to \`${EXPECTED_BRANCH}\` but got \`${CONFIGMAP_BRANCH}\`"
+    fi
+
+    ERROR_DETECTED=true
+  fi
+}
+
 main() {
   APP_PATCH_FILE="./components/argocd/apps/base/cluster-config-app-of-apps.yaml"
   APP_PATCH_PATH=".spec.source.targetRevision"
 
+  # Validate base Application file
   verify_branch "${APP_PATCH_FILE}" ${EXPECTED_BRANCH}
   verify_repo "${APP_PATCH_FILE}" ${EXPECTED_REPO}
+
+  # Validate all cluster overlay ConfigMap generators
+  for overlay in clusters/overlays/*/kustomization.yaml; do
+    if [ -f "$overlay" ]; then
+      verify_configmap_branch "$overlay" ${EXPECTED_BRANCH}
+      verify_configmap_repo "$overlay" ${EXPECTED_REPO}
+    fi
+  done
 
   if ${ERROR_DETECTED}; then
     exit 1
