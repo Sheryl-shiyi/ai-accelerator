@@ -1,0 +1,145 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-catalog-sources
+  namespace: rhoai-model-registries
+  labels:
+    app: model-catalog
+    app.kubernetes.io/component: model-catalog
+    app.kubernetes.io/created-by: model-registry-operator
+    app.kubernetes.io/instance: model-catalog
+    app.kubernetes.io/managed-by: model-registry-operator
+    app.kubernetes.io/name: model-catalog
+    app.kubernetes.io/part-of: model-catalog
+    component: model-catalog
+data:
+  sources.yaml: |
+    catalogs:
+      - name: Custom Catalog - Demo
+        id: custom_catalog_demo
+        type: yaml
+        enabled: true
+        properties:
+          yamlCatalogPath: approved-models.yaml
+        labels:
+          - Custom
+          - Demo
+  approved-models.yaml: |
+    source: Custom Catalog - Demo
+    models:
+      # Qwen Models (Verified working with RHOAI 3.3.1)
+      - name: Qwen/Qwen2.5-7B-Instruct
+        description: |
+          Qwen2.5-7B-Instruct is the latest series of Qwen large language models.
+          Supports tool calling, long context (up to 32K tokens), and structured outputs.
+          License: Apache-2.0. Architecture: Qwen2ForCausalLM (supported by vLLM 0.13.0+).
+        readme: |
+          # Qwen2.5-7B-Instruct
+
+          ## Key Features
+          - **Parameters**: 7B
+          - **Context Length**: 32K tokens
+          - **License**: Apache-2.0
+
+          ## Deployment
+          Use `storageUri: hf://Qwen/Qwen2.5-7B-Instruct`
+
+          ## Verified On
+          RHOAI 3.3.1, vLLM 0.13.0+rhai11, NVIDIA GPU (g5.2xlarge)
+        provider: Alibaba Cloud
+        logo: ""
+        license: apache-2.0
+        licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+        libraryName: transformers
+        artifacts:
+          - uri: hf://Qwen/Qwen2.5-7B-Instruct
+
+      - name: Qwen/Qwen2.5-14B-Instruct
+        description: |
+          Qwen2.5-14B-Instruct is a larger variant with enhanced reasoning capabilities.
+          Recommended for complex tasks requiring higher accuracy.
+        readme: |
+          # Qwen2.5-14B-Instruct
+
+          ## Key Features
+          - **Parameters**: 14B
+          - **Context Length**: 32K tokens
+          - **License**: Apache-2.0
+
+          ## Recommended Hardware
+          NVIDIA A100 (40GB) or better
+        provider: Alibaba Cloud
+        logo: ""
+        license: apache-2.0
+        licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+        libraryName: transformers
+        artifacts:
+          - uri: hf://Qwen/Qwen2.5-14B-Instruct
+
+      # Mistral Models
+      - name: mistralai/Mistral-7B-Instruct-v0.3
+        description: |
+          Mistral-7B-Instruct-v0.3 LLM is an instruct fine-tuned version of Mistral-7B-v0.3.
+          Extended vocabulary, v3 Tokenizer, supports function calling.
+        readme: |
+          # Mistral-7B-Instruct-v0.3
+
+          ## Key Features
+          - **Parameters**: 7B
+          - **Context Length**: 32K tokens
+          - **Function Calling**: Supported
+
+          ## Deployment
+          Use `storageUri: hf://mistralai/Mistral-7B-Instruct-v0.3`
+        provider: Mistral AI
+        logo: ""
+        license: apache-2.0
+        licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+        libraryName: transformers
+        artifacts:
+          - uri: hf://mistralai/Mistral-7B-Instruct-v0.3
+
+      # Red Hat Validated Models (OCI Format)
+      - name: RedHatAI/Llama-3.1-8B-Instruct
+        description: |
+          Red Hat validated Llama 3.1 8B Instruct model. Pre-tested and optimized
+          for deployment on OpenShift AI with guaranteed compatibility.
+        readme: |
+          # Llama-3.1-8B-Instruct (Red Hat Validated)
+
+          ## Key Features
+          - **Parameters**: 8B
+          - **Validation**: Red Hat tested and certified
+          - **Format**: OCI ModelCar
+
+          ## Deployment
+          Use `storageUri: oci://registry.redhat.io/rhelai1/modelcar-llama-3-1-8b-instruct-fp8-dynamic:1.5`
+        provider: Red Hat / Meta
+        logo: ""
+        license: llama3.1
+        licenseLink: https://llama.meta.com/llama3_1/license/
+        libraryName: transformers
+        artifacts:
+          - uri: oci://registry.redhat.io/rhelai1/modelcar-llama-3-1-8b-instruct-fp8-dynamic:1.5
+
+      - name: RedHatAI/Granite-8B-Code-Instruct
+        description: |
+          IBM Granite 8B Code Instruct model, validated by Red Hat for code generation
+          and programming assistance tasks.
+        readme: |
+          # Granite-8B-Code-Instruct (Red Hat Validated)
+
+          ## Key Features
+          - **Parameters**: 8B
+          - **Specialty**: Code generation, debugging, explanation
+          - **Format**: OCI ModelCar
+
+          ## Deployment
+          Use `storageUri: oci://registry.redhat.io/rhelai1/modelcar-granite-8b-code-instruct:1.4`
+        provider: Red Hat / IBM
+        logo: ""
+        license: apache-2.0
+        licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+        libraryName: transformers
+        artifacts:
+          - uri: oci://registry.redhat.io/rhelai1/modelcar-granite-8b-code-instruct:1.4
