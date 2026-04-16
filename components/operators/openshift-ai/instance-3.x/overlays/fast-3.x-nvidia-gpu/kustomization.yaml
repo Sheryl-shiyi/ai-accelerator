@@ -16,6 +16,7 @@ components:
   - ../../components/components-trainingoperator
   - ../../components/components-trustyai
   - ../../components/components-workbenches
+  - ../../components/custom-model-catalog
   - ../../components/dashboard-config
   - ../../components/hardware-profiles-nvidia-gpu
   - ../../components/idle-notebook-culling
