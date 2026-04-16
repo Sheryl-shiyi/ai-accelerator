@@ -1,6 +1,6 @@
-# Custom Model Catalog - Demo
+# Custom Model Catalog
 
-This component configures a custom model catalog ("Custom Catalog - Demo") for OpenShift AI, implementing **model whitelisting** by defining only approved models that users can discover and deploy.
+This component configures a custom model catalog for OpenShift AI, implementing **model whitelisting** by defining only approved models that users can discover and deploy.
 
 ## Purpose
 
@@ -19,13 +19,15 @@ Since we're replacing the entire data content (not just modifying a field), usin
 
 ## Included Models
 
-| Model | Provider | License | Format |
-|-------|----------|---------|--------|
-| Qwen/Qwen2.5-7B-Instruct | Alibaba Cloud | Apache-2.0 | HuggingFace |
-| Qwen/Qwen2.5-14B-Instruct | Alibaba Cloud | Apache-2.0 | HuggingFace |
-| mistralai/Mistral-7B-Instruct-v0.3 | Mistral AI | Apache-2.0 | HuggingFace |
-| RedHatAI/Llama-3.1-8B-Instruct | Red Hat / Meta | Llama 3.1 | OCI ModelCar |
-| RedHatAI/Granite-8B-Code-Instruct | Red Hat / IBM | Apache-2.0 | OCI ModelCar |
+| Model | Provider | License | Notes |
+|-------|----------|---------|-------|
+| Qwen/Qwen2.5-7B-Instruct | Alibaba Cloud | Apache-2.0 | ✅ Verified |
+| Qwen/Qwen2.5-14B-Instruct | Alibaba Cloud | Apache-2.0 | |
+| Qwen/Qwen3.5-4B | Alibaba Cloud | Apache-2.0 | ⚠️ Requires newer vLLM |
+| Qwen/Qwen3.6-35B-A3B | Alibaba Cloud | Apache-2.0 | MoE model |
+| mistralai/Mistral-7B-Instruct-v0.3 | Mistral AI | Apache-2.0 | |
+| RedHatAI/Llama-3.1-8B-Instruct | Red Hat / Meta | Llama 3.1 | OCI format |
+| google/gemma-4-31B | Google | Gemma ToU | |
 
 ## Usage
 
@@ -72,8 +74,8 @@ Edit `model-catalog-configmap.yaml` and add entries to the `approved-models.yaml
 After applying, check the OpenShift AI Dashboard:
 
 1. Go to **AI Hub → Catalog**
-2. Click **Custom models** or **Demo models** filter
-3. Only whitelisted models should appear in "Custom Catalog - Demo"
+2. Click **Sheryl Selected models** filter
+3. Only whitelisted models should appear
 
 ## References
 

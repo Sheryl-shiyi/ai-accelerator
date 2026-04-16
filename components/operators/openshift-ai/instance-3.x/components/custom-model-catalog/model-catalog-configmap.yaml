@@ -22,8 +22,7 @@ data:
         properties:
           yamlCatalogPath: approved-models.yaml
         labels:
-          - Custom
-          - Demo
+          - Sheryl Selected
   approved-models.yaml: |
     source: Custom Catalog - Demo
     models:
@@ -122,24 +121,70 @@ data:
         artifacts:
           - uri: oci://registry.redhat.io/rhelai1/modelcar-llama-3-1-8b-instruct-fp8-dynamic:1.5
 
-      - name: RedHatAI/Granite-8B-Code-Instruct
+      # Qwen3 Models (Requires newer vLLM - check compatibility)
+      - name: Qwen/Qwen3.5-4B
         description: |
-          IBM Granite 8B Code Instruct model, validated by Red Hat for code generation
-          and programming assistance tasks.
+          Qwen3.5-4B is a compact yet powerful model from the Qwen3 series.
+          Note: Requires vLLM version that supports qwen3_5 architecture.
         readme: |
-          # Granite-8B-Code-Instruct (Red Hat Validated)
+          # Qwen3.5-4B
 
           ## Key Features
-          - **Parameters**: 8B
-          - **Specialty**: Code generation, debugging, explanation
-          - **Format**: OCI ModelCar
+          - **Parameters**: 4B
+          - **Architecture**: qwen3_5 (requires latest vLLM)
+          - **License**: Apache-2.0
 
-          ## Deployment
-          Use `storageUri: oci://registry.redhat.io/rhelai1/modelcar-granite-8b-code-instruct:1.4`
-        provider: Red Hat / IBM
+          ## Important
+          Red Hat vLLM image (0.13.0) may not support this model yet.
+          Check vLLM version compatibility before deployment.
+        provider: Alibaba Cloud
         logo: ""
         license: apache-2.0
         licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
         libraryName: transformers
         artifacts:
-          - uri: oci://registry.redhat.io/rhelai1/modelcar-granite-8b-code-instruct:1.4
+          - uri: hf://Qwen/Qwen3.5-4B
+
+      - name: Qwen/Qwen3.6-35B-A3B
+        description: |
+          Qwen3.6-35B-A3B is a large-scale MoE model with 35B total parameters
+          and 3B active parameters per token.
+        readme: |
+          # Qwen3.6-35B-A3B
+
+          ## Key Features
+          - **Parameters**: 35B total, 3B active (MoE)
+          - **License**: Apache-2.0
+
+          ## Recommended Hardware
+          Multiple GPUs required for deployment
+        provider: Alibaba Cloud
+        logo: ""
+        license: apache-2.0
+        licenseLink: https://www.apache.org/licenses/LICENSE-2.0.txt
+        libraryName: transformers
+        artifacts:
+          - uri: hf://Qwen/Qwen3.6-35B-A3B
+
+      # Google Models
+      - name: google/gemma-4-31B
+        description: |
+          Gemma 4 31B is Google's latest open-weights model with strong
+          reasoning and multilingual capabilities.
+        readme: |
+          # Gemma 4 31B
+
+          ## Key Features
+          - **Parameters**: 31B
+          - **Provider**: Google
+          - **License**: Gemma Terms of Use
+
+          ## Recommended Hardware
+          NVIDIA A100 (80GB) or multiple GPUs
+        provider: Google
+        logo: ""
+        license: gemma
+        licenseLink: https://ai.google.dev/gemma/terms
+        libraryName: transformers
+        artifacts:
+          - uri: hf://google/gemma-4-31B
