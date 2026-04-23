@@ -24,6 +24,7 @@ metadata:
     app.kubernetes.io/version: release-0.3.0
     helm.sh/chart: console-plugin-nvidia-gpu-0.3.0
   name: console-plugin-nvidia-gpu
+  namespace: nvidia-gpu-operator
 ---
 apiVersion: v1
 kind: Service
@@ -39,6 +40,7 @@ metadata:
     app.kubernetes.io/version: release-0.3.0
     helm.sh/chart: console-plugin-nvidia-gpu-0.3.0
   name: console-plugin-nvidia-gpu
+  namespace: nvidia-gpu-operator
 spec:
   ports:
   - name: 9443-tcp
@@ -63,6 +65,7 @@ metadata:
     app.openshift.io/runtime-namespace: console-plugin-nvidia-gpu
     helm.sh/chart: console-plugin-nvidia-gpu-0.3.0
   name: console-plugin-nvidia-gpu
+  namespace: nvidia-gpu-operator
 spec:
   replicas: 1
   selector:
