@@ -181,8 +181,8 @@ wait_for_openshift_gitops(){
 }
 
 check_branch(){
-  APP_PATCH_FILE="./components/argocd/apps/base/cluster-config-app-of-apps.yaml"
-  APP_PATCH_PATH=".spec.source.targetRevision"
+  # New: Read from cluster overlay's configMapGenerator instead of base Application
+  CLUSTER_KUSTOMIZATION="./clusters/overlays/${bootstrap_dir}/kustomization.yaml"
 
   if ! command -v yq &> /dev/null; then
     print_warning "yq could not be found.  We are unable to verify the branch of your repo."
@@ -190,18 +190,20 @@ check_branch(){
   fi
 
   GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  APP_BRANCH=$(yq -r "${APP_PATCH_PATH}" ${APP_PATCH_FILE})
 
-  if [[ ${GIT_BRANCH} == ${APP_BRANCH} ]] ; then
+  # Extract targetRevision from configMapGenerator literal
+  OVERLAY_BRANCH=$(yq -r '.configMapGenerator[] | select(.name == "gitops-repo-config") | .literals[]' ${CLUSTER_KUSTOMIZATION} | grep "^targetRevision=" | cut -d= -f2)
+
+  if [[ ${GIT_BRANCH} == ${OVERLAY_BRANCH} ]] ; then
     echo
-    echo "Your working branch ${GIT_BRANCH}, matches your cluster overlay branch ${APP_BRANCH}"
-  else 
+    echo "Your working branch ${GIT_BRANCH}, matches your cluster overlay branch ${OVERLAY_BRANCH}"
+  else
     echo
-    echo "Your current working branch is ${GIT_BRANCH}, and your cluster overlay branch is ${APP_BRANCH}."
+    echo "Your current working branch is ${GIT_BRANCH}, and your cluster overlay branch is ${OVERLAY_BRANCH}."
 
     if [[ ${FORCE} == "true" ]] ; then
       echo "Updating to ${GIT_BRANCH}"
-      update_branch ${CLUSTER_OVERLAY};
+      update_configmap_branch ${CLUSTER_KUSTOMIZATION} ${GIT_BRANCH}
     else
       echo "Do you wish to update it to ${GIT_BRANCH}?"
 
@@ -209,7 +211,7 @@ check_branch(){
 
       select yn in "Yes" "No"; do
           case $yn in
-              Yes ) update_branch ${APP_PATCH_FILE} ${APP_PATCH_PATH}; break;;
+              Yes ) update_configmap_branch ${CLUSTER_KUSTOMIZATION} ${GIT_BRANCH}; break;;
               No ) break;;
           esac
       done
@@ -286,9 +288,65 @@ update_repo(){
   git push origin ${GIT_BRANCH}
 }
 
+update_configmap_repo(){
+  if [ -z "$1" ]; then
+    echo "No kustomization file supplied."
+    exit 1
+  else
+    KUSTOMIZATION_FILE=$1
+  fi
+
+  if [ -z "$2" ]; then
+    echo "No repo URL provided."
+    exit 1
+  else
+    REPO_URL=$2
+  fi
+
+  echo "Updating ${KUSTOMIZATION_FILE}..."
+
+  # Update the repoURL literal in the configMapGenerator
+  sed -i "s|      - repoURL=.*|      - repoURL=${REPO_URL}|" ${KUSTOMIZATION_FILE}
+
+  GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+  git add ${KUSTOMIZATION_FILE}
+  git commit -m "Update repository URL to ${REPO_URL} (automatic update by bootstrap script)"
+  git push origin ${GIT_BRANCH}
+
+  echo "✅ Updated repository URL to ${REPO_URL}"
+}
+
+update_configmap_branch(){
+  if [ -z "$1" ]; then
+    echo "No kustomization file supplied."
+    exit 1
+  else
+    KUSTOMIZATION_FILE=$1
+  fi
+
+  if [ -z "$2" ]; then
+    echo "No branch provided."
+    exit 1
+  else
+    BRANCH=$2
+  fi
+
+  echo "Updating ${KUSTOMIZATION_FILE}..."
+
+  # Update the targetRevision literal in the configMapGenerator
+  sed -i "s|      - targetRevision=.*|      - targetRevision=${BRANCH}|" ${KUSTOMIZATION_FILE}
+
+  git add ${KUSTOMIZATION_FILE}
+  git commit -m "Update branch to ${BRANCH} (automatic update by bootstrap script)"
+  git push origin ${BRANCH}
+
+  echo "✅ Updated branch to ${BRANCH}"
+}
+
 check_repo(){
-  APP_PATCH_FILE="./components/argocd/apps/base/cluster-config-app-of-apps.yaml"
-  APP_PATCH_PATH=".spec.source.repoURL"
+  # New: Read from cluster overlay's configMapGenerator instead of base Application
+  CLUSTER_KUSTOMIZATION="./clusters/overlays/${bootstrap_dir}/kustomization.yaml"
 
   if ! command -v yq &> /dev/null; then
     echo "yq could not be found.  We are unable to verify the repo."
@@ -296,12 +354,14 @@ check_repo(){
 
     GIT_REPO=$(git config --get remote.origin.url)
     GIT_REPO_BASENAME=$(get_git_basename ${GIT_REPO})
-    APP_REPO=$(yq -r "${APP_PATCH_PATH}" ${APP_PATCH_FILE})
-    APP_REPO_BASENAME=$(get_git_basename ${APP_REPO})
 
-    if [[ ${GIT_REPO_BASENAME} == ${APP_REPO_BASENAME} ]] ; then
-      echo "Your working repo ${GIT_REPO}, matches your cluster overlay branch ${APP_REPO}"
-    else 
+    # Extract repoURL from configMapGenerator literal
+    OVERLAY_REPO=$(yq -r '.configMapGenerator[] | select(.name == "gitops-repo-config") | .literals[]' ${CLUSTER_KUSTOMIZATION} | grep "^repoURL=" | cut -d= -f2)
+    OVERLAY_REPO_BASENAME=$(get_git_basename ${OVERLAY_REPO})
+
+    if [[ ${GIT_REPO_BASENAME} == ${OVERLAY_REPO_BASENAME} ]] ; then
+      echo "Your working repo ${GIT_REPO}, matches your cluster overlay repo ${OVERLAY_REPO}"
+    else
 
       GITHUB_URL="https://github.com/${GIT_REPO_BASENAME}.git"
 
@@ -310,11 +370,11 @@ check_repo(){
       echo "  ${GIT_REPO}"
       echo
       echo "Your cluster overlay repo is"
-      echo "  ${APP_REPO}"
+      echo "  ${OVERLAY_REPO}"
 
       if [[ ${FORCE} == "true" ]] ; then
         echo "Updating to ${GITHUB_URL}"
-        update_repo ${APP_PATCH_FILE} ${APP_PATCH_PATH} ${GITHUB_URL};
+        update_configmap_repo ${CLUSTER_KUSTOMIZATION} ${GITHUB_URL}
       else
 
         echo
@@ -326,7 +386,7 @@ check_repo(){
 
         select yn in "Yes" "No"; do
             case $yn in
-                Yes ) update_repo ${APP_PATCH_FILE} ${APP_PATCH_PATH} ${GITHUB_URL}; break;;
+                Yes ) update_configmap_repo ${CLUSTER_KUSTOMIZATION} ${GITHUB_URL}; break;;
                 No ) break;;
             esac
         done
