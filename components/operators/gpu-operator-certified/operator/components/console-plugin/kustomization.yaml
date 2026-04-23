@@ -7,6 +7,7 @@ resources:
   - consoleplugin.yaml
   - deployment.yaml
   - service.yaml
+
 generatorOptions:
   disableNameSuffixHash: true
 

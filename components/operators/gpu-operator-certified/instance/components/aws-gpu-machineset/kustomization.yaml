@@ -5,6 +5,7 @@ resources:
   # - ../../../../../../scripts/library
   - job.yaml
   - rbac.yaml
+
 generatorOptions:
   disableNameSuffixHash: true
 

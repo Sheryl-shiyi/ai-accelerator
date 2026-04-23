@@ -22,7 +22,7 @@ add_section_spacing() {
     /^kind:/ { seen_kind = 1; print; next }
 
     # Major section keywords - add blank line before them if not already present
-    /^(resources|components|bases|patches|replacements|configMapGenerator|secretGenerator|commonAnnotations|commonLabels|namespace|images|replicas|namePrefix|nameSuffix|vars|patchesStrategicMerge|patchesJson6902):/ {
+    /^(resources|components|bases|patches|replacements|configMapGenerator|generatorOptions|secretGenerator|commonAnnotations|commonLabels|namespace|helmCharts|images|replicas|namePrefix|nameSuffix|vars|patchesStrategicMerge|patchesJson6902):/ {
       # Add blank line before section if previous line was not blank
       if (!prev_blank) {
         print ""
@@ -42,39 +42,26 @@ add_section_spacing() {
   mv "$tmpfile" "$file"
 }
 
+sortable_fields=(resources components bases)
+
 for file in $(find . -name "kustomization.yaml" -type f); do
   total_count=$((total_count + 1))
 
-  # Check if file has yq-sortable lists
-  has_resources=$(yq -e '.resources' "$file" >/dev/null 2>&1 && echo "yes" || echo "no")
-  has_components=$(yq -e '.components' "$file" >/dev/null 2>&1 && echo "yes" || echo "no")
-  has_bases=$(yq -e '.bases' "$file" >/dev/null 2>&1 && echo "yes" || echo "no")
-
-  if [ "$has_resources" = "yes" ] || [ "$has_components" = "yes" ] || [ "$has_bases" = "yes" ]; then
-    echo "Processing: $file"
-
-    # Sort resources if present
-    if [ "$has_resources" = "yes" ]; then
-      yq -i '.resources |= sort' "$file"
-      echo "  ✅ Sorted .resources"
+  file_modified=false
+  for field in "${sortable_fields[@]}"; do
+    if yq -e ".$field" "$file" >/dev/null 2>&1; then
+      if [ "$file_modified" = false ]; then
+        echo "Processing: $file"
+        file_modified=true
+      fi
+      yq -i ".$field |= sort" "$file"
+      echo "  ✅ Sorted .$field"
     fi
+  done
 
-    # Sort components if present
-    if [ "$has_components" = "yes" ]; then
-      yq -i '.components |= sort' "$file"
-      echo "  ✅ Sorted .components"
-    fi
-
-    # Sort bases if present (deprecated but some may still use it)
-    if [ "$has_bases" = "yes" ]; then
-      yq -i '.bases |= sort' "$file"
-      echo "  ✅ Sorted .bases"
-    fi
-
-    # Add blank lines between sections for readability
+  if [ "$file_modified" = true ]; then
     add_section_spacing "$file"
     echo "  ✅ Added section spacing"
-
     sorted_count=$((sorted_count + 1))
     echo
   fi
