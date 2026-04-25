@@ -6,6 +6,17 @@ SEALED_SECRETS_FOLDER=components/operators/sealed-secrets-operator/overlays/defa
 SEALED_SECRETS_SECRET=bootstrap/base/sealed-secrets-secret.yaml
 TIMEOUT_SECONDS=60
 
+# BSD sed (macOS, FreeBSD) requires an extension argument to -i (use '' for none).
+# GNU sed accepts -i with no argument. This wrapper behaves on both.
+sed_edit_inplace() {
+  local script=$1
+  local target=$2
+  case "$(uname -s)" in
+    Darwin|FreeBSD) sed -i '' "${script}" "${target}" ;;
+    *) sed -i "${script}" "${target}" ;;
+  esac
+}
+
 setup_bin(){
   mkdir -p ${TMP_DIR}/bin
   echo "${PATH}" | grep -q "${TMP_DIR}/bin" || \
@@ -306,11 +317,11 @@ update_configmap_repo(){
   echo "Updating ${KUSTOMIZATION_FILE}..."
 
   # Update the repoURL literal in the configMapGenerator
-  sed -i "s|      - repoURL=.*|      - repoURL=${REPO_URL}|" ${KUSTOMIZATION_FILE}
+  sed_edit_inplace "s|      - repoURL=.*|      - repoURL=${REPO_URL}|" "${KUSTOMIZATION_FILE}"
 
   GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-  git add ${KUSTOMIZATION_FILE}
+  git add "${KUSTOMIZATION_FILE}"
   git commit -m "Update repository URL to ${REPO_URL} (automatic update by bootstrap script)"
   git push origin ${GIT_BRANCH}
 
@@ -335,9 +346,9 @@ update_configmap_branch(){
   echo "Updating ${KUSTOMIZATION_FILE}..."
 
   # Update the targetRevision literal in the configMapGenerator
-  sed -i "s|      - targetRevision=.*|      - targetRevision=${BRANCH}|" ${KUSTOMIZATION_FILE}
+  sed_edit_inplace "s|      - targetRevision=.*|      - targetRevision=${BRANCH}|" "${KUSTOMIZATION_FILE}"
 
-  git add ${KUSTOMIZATION_FILE}
+  git add "${KUSTOMIZATION_FILE}"
   git commit -m "Update branch to ${BRANCH} (automatic update by bootstrap script)"
   git push origin ${BRANCH}
 
