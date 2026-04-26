@@ -5,5 +5,5 @@ kind: Kustomization
 namespace: istio-cni
 
 resources:
-  - namespace.yaml
   - istio-cni.yaml
+  - namespace.yaml

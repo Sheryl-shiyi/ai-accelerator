@@ -4,7 +4,7 @@ kind: Component
 namespace: openshift-gitops
 
 resources:
-- console-plugin-job.yaml
+  - console-plugin-job.yaml
 
 generatorOptions:
   disableNameSuffixHash: true

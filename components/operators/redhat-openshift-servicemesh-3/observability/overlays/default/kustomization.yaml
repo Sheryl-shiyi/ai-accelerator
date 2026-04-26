@@ -5,9 +5,9 @@ kind: Kustomization
 namespace: istio-system
 
 components:
-  - ../../components/namespace-monitor
-  - ../../components/kiali
   - ../../components/console-plugin
+  - ../../components/kiali
+  - ../../components/namespace-monitor
 
 resources:
   - ../../base

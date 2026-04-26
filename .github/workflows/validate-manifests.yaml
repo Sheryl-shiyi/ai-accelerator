@@ -82,3 +82,20 @@ jobs:
         uses: rojopolis/spellcheck-github-actions@0.36.0
         with:
           config_path: .spellcheck.yaml
+
+  check-kustomization-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v4
+      - name: Install yq
+        run: |
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+          yq --version
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+      - name: Validate kustomization.yaml formatting
+        run: ./scripts/check-kustomization-format.sh

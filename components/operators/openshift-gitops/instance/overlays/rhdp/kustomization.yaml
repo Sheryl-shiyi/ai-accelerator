@@ -21,4 +21,4 @@ components:
   - ../../components/kustomize-build-enable-helm
 
 patches:
-- path: gitops-admins-group.yaml
+  - path: gitops-admins-group.yaml
