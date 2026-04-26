@@ -9,11 +9,14 @@ components:
   - ../../components/components-feast
   - ../../components/components-kserve
   - ../../components/components-kserve-maas
+  - ../../components/components-kserve-nim
+  - ../../components/components-llamastack
   - ../../components/components-modelregistry
   - ../../components/components-ray
   - ../../components/components-trainingoperator
   - ../../components/components-trustyai
   - ../../components/components-workbenches
+  - ../../components/dashboard-config
   - ../../components/hardware-profiles-nvidia-gpu
   - ../../components/idle-notebook-culling
   - ../../components/inference-gateway
