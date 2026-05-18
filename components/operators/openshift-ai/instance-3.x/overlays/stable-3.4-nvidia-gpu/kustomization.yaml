@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+components:
+  # Shared with 3.3
+  - ../../components/components-aipipelines
+  - ../../components/components-feast
+  - ../../components/components-kserve-nim
+  - ../../components/components-llamastack
+  - ../../components/components-modelregistry
+  - ../../components/components-ray
+  - ../../components/components-trainingoperator
+  - ../../components/components-workbenches
+  - ../../components/custom-model-catalog
+  - ../../components/hardware-profiles-nvidia-gpu
+  - ../../components/idle-notebook-culling
+  - ../../components/inference-gateway
+  - ../../components/rhoai-auth
+  # 3.4-specific (replacing 3.3 versions)
+  - ../../components/components-kserve-3.4
+  - ../../components/components-kserve-maas-3.4
+  - ../../components/components-trustyai-3.4
+  - ../../components/dashboard-config-3.4
+  # 3.4-only (new features)
+  - ../../components/observability-dsci
+  - ../../components/jobset-operator-cr
+  - ../../components/maas-postgres
+  - ../../components/mlflow

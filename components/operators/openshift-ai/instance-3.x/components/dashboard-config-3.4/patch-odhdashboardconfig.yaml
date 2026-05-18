@@ -1,0 +1,18 @@
+apiVersion: opendatahub.io/v1alpha
+kind: OdhDashboardConfig
+metadata:
+  name: odh-dashboard-config
+spec:
+  dashboardConfig:
+    disableKServeMetrics: false
+    disableKueue: false
+    disableLLMd: false
+    disableLMEval: false
+    disableModelCatalog: false
+    disableModelRegistry: false
+    disableTracking: false
+    genAiStudio: true
+    maasAuthPolicies: true
+    modelAsService: true
+    observabilityDashboard: true
+    trainingJobs: true

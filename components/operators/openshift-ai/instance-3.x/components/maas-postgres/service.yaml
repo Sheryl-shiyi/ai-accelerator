@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: maas-postgres
+  namespace: redhat-ods-applications
+spec:
+  selector:
+    app: maas-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

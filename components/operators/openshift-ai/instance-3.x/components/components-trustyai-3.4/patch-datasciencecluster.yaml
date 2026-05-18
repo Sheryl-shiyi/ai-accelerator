@@ -1,0 +1,13 @@
+apiVersion: datasciencecluster.opendatahub.io/v2
+kind: DataScienceCluster
+metadata:
+  name: default
+spec:
+  components:
+    trustyai:
+      managementState: Managed
+      mcpGuardrailsMode: true
+      eval:
+        lmeval:
+          permitCodeExecution: allow
+          permitOnline: allow
