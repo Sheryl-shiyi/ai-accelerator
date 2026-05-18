@@ -28,4 +28,6 @@ components:
   - ../../components/observability-dsci
   - ../../components/jobset-operator-cr
   - ../../components/maas-postgres
-  - ../../components/mlflow
+  # MLflow is managed internally by the DSC MLflowOperator component;
+  # no user-facing MLflow CR exists in RHOAI 3.4
+  # - ../../components/mlflow
