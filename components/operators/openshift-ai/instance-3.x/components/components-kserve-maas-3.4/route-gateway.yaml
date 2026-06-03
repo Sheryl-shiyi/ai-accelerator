@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: maas-default-gateway
+  namespace: openshift-ingress
+spec:
+  host: maas.apps.cluster-wpg27.wpg27.sandbox3457.opentlc.com
+  port:
+    targetPort: 80
+  tls:
+    insecureEdgeTerminationPolicy: Allow
+    termination: edge
+  to:
+    kind: Service
+    name: maas-default-gateway-data-science-gateway-class
+    weight: 100
+  wildcardPolicy: None

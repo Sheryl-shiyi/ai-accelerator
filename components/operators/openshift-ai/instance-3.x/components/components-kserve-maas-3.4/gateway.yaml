@@ -3,21 +3,23 @@ kind: Gateway
 metadata:
   name: maas-default-gateway
   namespace: openshift-ingress
+  labels:
+    opendatahub.io/managed: "false"
   annotations:
     opendatahub.io/managed: "false"
     security.opendatahub.io/authorino-tls-bootstrap: "true"
 spec:
   gatewayClassName: data-science-gateway-class
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: maas-default-gateway-config
   listeners:
-    - name: https
-      port: 443
-      protocol: HTTPS
-      tls:
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: maas-default-gateway-tls
-        mode: Terminate
+    - name: http
+      port: 80
+      protocol: HTTP
+      hostname: maas.apps.cluster-wpg27.wpg27.sandbox3457.opentlc.com
       allowedRoutes:
         namespaces:
           from: All
