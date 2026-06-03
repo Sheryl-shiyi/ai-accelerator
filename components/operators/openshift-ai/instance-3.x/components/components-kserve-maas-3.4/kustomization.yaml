@@ -7,6 +7,4 @@ patches:
       kind: DataScienceCluster
 
 resources:
-  - configmap-gateway.yaml
   - gateway.yaml
-  - route-gateway.yaml
