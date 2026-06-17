@@ -6,7 +6,7 @@ metadata:
   name: rhcl-operator
 spec:
   channel: patch-me-see-overlays-dir
-  installPlanApproval: Automatic
+  installPlanApproval: Manual
   name: rhcl-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
